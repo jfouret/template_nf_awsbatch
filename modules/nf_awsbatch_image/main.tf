@@ -35,13 +35,14 @@ resource "aws_imagebuilder_component" "install_awscli" {
           "action": "ExecuteBash",
           "inputs": {
             "commands": [
-              "sudo yum install -y bzip2 wget",
-              "wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh",
-              "bash Miniconda3-latest-Linux-x86_64.sh -b -f -p $HOME/miniconda",
-              "$HOME/miniconda/bin/conda install -c conda-forge -y awscli",
-              "rm Miniconda3-latest-Linux-x86_64.sh",
-              "echo 'AWS CLI version:'",
-              "$HOME/miniconda/bin/aws --version"
+              "yum install -y awscli bzip2 wget java-21-amazon-corretto-headless vim",
+              "wget https://s3.amazonaws.com/mountpoint-s3-release/latest/x86_64/mount-s3.rpm",
+              "yum install -y ./mount-s3.rpm",
+              "rm ./mount-s3.rpm",
+              "mount-s3 --version",
+              "wget -qO- https://get.nextflow.io | bash",
+              "mv nextflow /usr/local/bin/",
+              "chmod o+rx /usr/local/bin/nextflow"
             ]
           }
         }

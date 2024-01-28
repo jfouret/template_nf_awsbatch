@@ -39,6 +39,7 @@ resource "aws_iam_group_policy" "policy" {
         Action   = [
           "batch:DescribeJobQueues",
           "batch:CancelJob",
+          "batch:TagResource",
           "batch:SubmitJob",
           "batch:ListJobs",
           "batch:DescribeComputeEnvironments",

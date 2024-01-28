@@ -14,10 +14,6 @@
    limitations under the License.
 */
 
-output "job_queue_name" {
-  value = aws_batch_job_queue.nf_managed_queue.name
-}
-
-output "private_key_pem" {
-  value = tls_private_key.key.private_key_pem
+output "ip" {
+  value = aws_instance.batch_session.public_ip
 }

@@ -3,3 +3,4 @@
 /.vs
 /.terraform.lock.hcl
 /.aws
+*pem

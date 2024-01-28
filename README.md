@@ -24,7 +24,7 @@ Nextflow is a robust workflow system for defining and running complex processing
 
 Our goal is to define modular Terraform configurations for effortless deployment of an AWS Batch environment tailored for Nextflow use. This repository contains various modules for flexibility, along with a comprehensive template illustrating their combined application.
 
-## Sources of inspiration
+## Inspiration sources
 
 I have followed the following ressources to elaborate this template:
 
@@ -56,20 +56,35 @@ Establishes a VPC with both public and private subnets across availability zones
   2. Private subnets with a single NAT Gateway (default).
   3. Public subnets without NAT, assigning public IPs to each instance.
 - **Pricing considerations**
-    - NAT GW uptime 
-    - NAT GW Data Tranfer processing pricing
-    - Intra-Region Data Transfer between Availability Zones when using a single NAT.
-    - Elastic IPv4 pricing for both NATs or instances in case of public subnets
+  - NAT Gateway uptime and data transfer processing fees.
+  - Cross-zone data transfer costs when using a single NAT.
+  - Elastic IPv4 charges for NATs or instances in public subnet scenarios.
 
 For more details : https://aws.amazon.com/vpc/pricing/
 
 ### Module: `nf_awsbatch_batch`
 
-Configures the AWS Batch infrastructure for Nextflow. Defaults to the optimal setup for typical use cases.
+Configures the AWS Batch infrastructure, tailored for optimal performance with typical Nextflow use cases.
+
+### Module: `nf_awsbatch_session`
+
+Facilitates setting up a session with an EC2 instance for launching Nextflow runs. This module includes:
+
+- Creation of an S3 bucket for storing Nextflow intermediate files.
+- Provisioning an instance in the same region as AWS Batch for efficient interaction with the S3 bucket.
+- A basic Nextflow configuration file for AWS Batch.
+- Installation of `awscli` and `mount-s3`, with instance roles permitting S3 access.
 
 ### Template `main.tf`
 
 Serves as an example showcasing the integration of all modules.
+
+Output of the instance IP and provision of `generated_key.pem` for secure to the batch session.
+
+## Known issues and bugs
+
+- The ami generated with the `nf_awsbatch_image` module is not deleted upon destroy.
+- The default ami id in `nf_awsbatch_image` may become outdated over time.
 
 ## Usage
 
@@ -95,7 +110,7 @@ Alternatively, you can store those in `.aws/credentials.sh` and run `source .aws
 - AWSImageBuilderFullAccess
 - IAMFullAccess
 
-> **Note:** These permissions are extensive and should be refined for production use. A user with reduced permissions is created for Nextflow interaction.
+> **Note:** These permissions are broad and should be refined for production environments. The setup includes a Nextflow-specific user with more restricted permissions.
 
 3. Manually create a S3 bucket `tfstate.test-awsbatch` in the appropriate region. 
 

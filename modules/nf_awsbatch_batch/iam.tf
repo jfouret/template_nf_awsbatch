@@ -37,6 +37,11 @@ resource "aws_iam_role_policy_attachment" "ecs_instance_role" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
 }
 
+resource "aws_iam_role_policy_attachment" "ecs_instance_role_2" {
+  role       = aws_iam_role.ecs_instance_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+}
+
 resource "aws_iam_instance_profile" "ecs_instance_role" {
   name = "ecs_instance_role"
   role = aws_iam_role.ecs_instance_role.name

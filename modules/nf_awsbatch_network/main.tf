@@ -14,9 +14,6 @@
    limitations under the License.
 */
 
-# This role is separated in case where a VPC with paid ressources such as NAT are
-# used 
-
 provider "aws" {
   region = var.aws_region
 }
@@ -127,4 +124,23 @@ resource "aws_security_group" "ecs_batch_sg" {
   tags = {
     Name = "${var.prefix}_sg"
   }
+
+  ingress {
+    description = "SSH from anywhere"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
 }
+
