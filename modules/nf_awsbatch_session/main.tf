@@ -38,8 +38,8 @@ resource "aws_security_group" "ssh_access" {
   }
 }
 
-resource "aws_iam_role" "ssm_role" {
-  name = "ssm_role"
+resource "aws_iam_role" "role" {
+  name = "${var.prefix}-session-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
@@ -55,14 +55,14 @@ resource "aws_iam_role" "ssm_role" {
   })
 }
 
-resource "aws_iam_role_policy_attachment" "ssm_policy" {
-  role       = aws_iam_role.ssm_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+resource "aws_iam_role_policy_attachment" "s3_policy" {
+  role       = aws_iam_role.role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
 }
 
-resource "aws_iam_instance_profile" "ssm_instance_profile" {
-  name = "ssm_instance_profile"
-  role = aws_iam_role.ssm_role.name
+resource "aws_iam_instance_profile" "instance_profile" {
+  name = "${var.prefix}-session_instance_profile"
+  role = aws_iam_role.role.name
 }
 
 resource "random_uuid" "test" {
@@ -87,7 +87,7 @@ resource "aws_s3_object" "nextflow_workdir" {
 resource "aws_instance" "batch_session" {
   depends_on = [aws_s3_object.nextflow_workdir]
   ami           = var.ami_id
-  iam_instance_profile = aws_iam_instance_profile.ssm_instance_profile.name
+  iam_instance_profile = aws_iam_instance_profile.instance_profile.name
   instance_type = var.instance_type # Define this variable
   subnet_id     = var.subnet_id
   key_name      = aws_key_pair.deployer.key_name
