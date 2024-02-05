@@ -25,18 +25,6 @@ terraform {
 provider "tls" {
 }
 
-module "awsbatch_user" {
-  source = "./modules/nf_awsbatch_user"
-  aws_region = "eu-west-3"
-  prefix     = "nf_awsbatch"
-}
-
-module "awsbatch_image" {
-  source = "./modules/nf_awsbatch_image"
-  aws_region = "eu-west-3"
-  prefix     = "nf_awsbatch"
-}
-
 module "awsbatch_network" {
   source = "./modules/nf_awsbatch_network"
   aws_region = "eu-west-3"
@@ -48,7 +36,6 @@ module "awsbatch_batch" {
   source = "./modules/nf_awsbatch_batch"
   aws_region = "eu-west-3"
   prefix     = "nf_awsbatch"
-  ami_for_batch = module.awsbatch_image.image
   sg_ids = [module.awsbatch_network.sg_id]
   subnet_ids = module.awsbatch_network.subnet_ids_for_batch
 }
@@ -79,11 +66,9 @@ resource "local_sensitive_file" "private_key" {
 
 resource "local_sensitive_file" "private_key_batch" {
   content = module.awsbatch_batch.private_key_pem
-  filename          = "./generated_key_for_batch.pem"
+  filename          = "generated_key_for_batch.pem"
   file_permission   = "0600"
 }
-
-/*
 
 module "awsbatch_session" {
   source = "./modules/nf_awsbatch_session"
@@ -91,15 +76,10 @@ module "awsbatch_session" {
   prefix     = "nf_awsbatch"
   subnet_id = module.awsbatch_network.public_subnet_ids[0]
   public_key = tls_private_key.example.public_key_openssh
-  ami_id = module.awsbatch_image.image
   job_queue = module.awsbatch_batch.job_queue_name
   env_bucket_name = "nf-awsbatch-env"
-  aws_accessKey = module.awsbatch_user.access_key_id
-  aws_secretKey = module.awsbatch_user.secret_access_key
 }
 
 output "public_ip" {
   value = module.awsbatch_session.ip
 }
-
-*/

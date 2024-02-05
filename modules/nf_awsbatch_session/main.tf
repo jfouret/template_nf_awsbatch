@@ -60,6 +60,24 @@ resource "aws_iam_role_policy_attachment" "s3_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
 }
 
+# Load the JSON policy document from a file
+data "local_file" "custom_policy" {
+  filename = "${path.module}/nf_policy.json"
+}
+
+# Create a new IAM policy using the loaded JSON document
+resource "aws_iam_policy" "custom_policy" {
+  name        = "${var.prefix}-custom-policy"
+  description = "A custom policy for specific permissions"
+  policy      = data.local_file.custom_policy.content
+}
+
+# Attach the newly created policy to the IAM role
+resource "aws_iam_role_policy_attachment" "custom_policy_attachment" {
+  role       = aws_iam_role.role.name
+  policy_arn = aws_iam_policy.custom_policy.arn
+}
+
 resource "aws_iam_instance_profile" "instance_profile" {
   name = "${var.prefix}-session_instance_profile"
   role = aws_iam_role.role.name
@@ -102,12 +120,21 @@ resource "aws_instance" "batch_session" {
         process.executor = 'awsbatch'
         process.queue = '${var.job_queue}'
         aws.region = '${var.aws_region}'
-        aws.batch.cliPath = '/usr/local/bin/aws'
-        workDir = 's3://${aws_s3_bucket.nextflow_bucket.bucket}/nextflow_env/'
-        aws {
-            accessKey = '${var.aws_accessKey}'
-            secretKey = '${var.aws_secretKey}'
+        wave { 
+          enabled = true
+        } 
+        fusion {
+          enabled = true
         }
+        workDir = 's3://${aws_s3_bucket.nextflow_bucket.bucket}/nextflow_env/'
+    runcmd:
+    - yum install -y awscli bzip2 wget java-21-amazon-corretto-headless vim
+    - wget https://s3.amazonaws.com/mountpoint-s3-release/latest/x86_64/mount-s3.rpm
+    - yum install -y ./mount-s3.rpm
+    - rm ./mount-s3.rpm
+    - wget -qO- https://get.nextflow.io | bash
+    - mv nextflow /usr/local/bin/
+    - chmod o+rx /usr/local/bin/nextflow
   EOF
 }
 

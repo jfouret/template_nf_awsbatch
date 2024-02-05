@@ -33,19 +33,9 @@ I have followed the following ressources to elaborate this template:
 - [STAPH-B Public Health Bacterial Bioinformatics Portal](https://staphb.org/resources/2020-04-29-nextflow_batch.html)
 - [AWS Open Data Genomics Workflows](https://docs.opendata.aws/genomics-workflows/orchestration/nextflow/nextflow-overview.html)
 
+Of note, with the introduction of wave and fusion some things have changed, therefore the use of image is less necessary. In addition I tried to use more of role-defined permission rather than using acess key or secret.
+
 ## Repository Contents
-
-### Module: `nf_awsbatch_user`
-
-Creates a restricted user for Nextflow's interaction with AWS Batch, enhancing security.
-
-> **current limitation:** The user currently has broad access to S3 resources. Future versions may restrict access via variables.
-
-### Module: `nf_awsbatch_image`
-
-Generates the required Amazon Machine Image (AMI) for AWS Batch.
-
-> **NOTE:**  The build of the image takes approximately 15min. You can customize the root disk size for batch instances.
 
 ### Module: `nf_awsbatch_network`
 
@@ -80,11 +70,6 @@ Facilitates setting up a session with an EC2 instance for launching Nextflow run
 Serves as an example showcasing the integration of all modules.
 
 Output of the instance IP and provision of `generated_key.pem` for secure to the batch session.
-
-## Known issues and bugs
-
-- The ami generated with the `nf_awsbatch_image` module is not deleted upon destroy.
-- The default ami id in `nf_awsbatch_image` may become outdated over time.
 
 ## Usage
 

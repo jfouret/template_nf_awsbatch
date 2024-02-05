@@ -33,6 +33,19 @@ resource "aws_key_pair" "key" {
   public_key = tls_private_key.key.public_key_openssh
 }
 
+resource "aws_launch_template" "launch_template" {
+  name = "${var.prefix}-launch-template"
+
+  block_device_mappings {
+    device_name = "/dev/xvda"
+    ebs {
+      delete_on_termination = true
+      volume_size           = var.volume_size
+      volume_type           = "gp3"
+    }
+  }
+}
+
 resource "aws_batch_compute_environment" "nf_managed_ec2" {
   depends_on = [aws_iam_role_policy_attachment.aws_batch_service_role] # necessary to destroy related ressources
   compute_environment_name    = "${var.prefix}-managed-ec2-spot"
@@ -48,7 +61,12 @@ resource "aws_batch_compute_environment" "nf_managed_ec2" {
     ec2_key_pair   = aws_key_pair.key.key_name
     bid_percentage = var.compute_resources_bid_percentage
     allocation_strategy = var.compute_resources_allocation_strategy
-    image_id = var.ami_for_batch
+    ec2_configuration {
+      image_type = "ECS_AL2023" # https://docs.aws.amazon.com/batch/latest/APIReference/API_Ec2Configuration.html
+    }
+    launch_template{
+      launch_template_name = aws_launch_template.launch_template.name
+    }
   }
   service_role = aws_iam_role.aws_batch_service_role.arn
   type         = "MANAGED"

@@ -33,6 +33,7 @@ variable "subnet_id" {
 variable "ami_id" {
   description = "AMI ID for the EC2 instance (expected to be Amazon Linux 2023)"
   type        = string
+  default = "ami-09594e7fa2e7787c1"
 }
 
 variable "job_queue" {
@@ -57,15 +58,6 @@ variable "instance_type" {
   default = "t3.medium"
 }
 
-variable "aws_accessKey" {
-  description = "The AWS access key used for programmatic access to AWS services. This should be used in conjunction with 'aws_secretKey'. Note: For enhanced security, consider using IAM roles and instance profiles instead of hard-coding access keys."
-  type        = string
-}
-
-variable "aws_secretKey" {
-  description = "The AWS secret key corresponding to the 'aws_accessKey'. This key should be kept confidential and used for AWS service authentication. As with 'aws_accessKey', consider using more secure methods for production environments."
-  type        = string
-}
 
 
 

@@ -14,6 +14,12 @@
    limitations under the License.
 */
 
+variable "volume_size" {
+  description = "Volume size that must be higher than the root volume from base ami"
+  type = number
+  default = 100
+}
+
 variable "prefix" {
   description = "The prefix for naming"
   type        = string
@@ -26,18 +32,13 @@ variable "aws_region" {
   default     = "eu-west-3"
 }
 
-variable "ami_for_batch" {
-  description = "ami to be used from the nf_awsbatch_image module"
-  type        = string
-}
-
 variable "instance_type" {
   description = "The instance types that can be launched."
   type = list(string)
   default = [
-    "m5",
-    "c5",
-    "r5"
+    "m5.2xlarge", "m5.4xlarge", "m5.8xlarge",
+    "c5.2xlarge", "c5.4xlarge", "c5.9xlarge",
+    "r5.2xlarge", "r5.4xlarge", "r5.8xlarge"
   ]
 }
 
@@ -50,7 +51,7 @@ variable "compute_resources_bid_percentage" {
 variable "compute_resources_max_vcpus" {
   description = "aws_batch_compute_environment.compute_resources.max_vcpus"
   type = number
-  default = 256
+  default = 64
 }
 
 variable "compute_resources_min_vcpus" {
@@ -68,7 +69,7 @@ variable "compute_resources_type" {
 variable "compute_resources_allocation_strategy" {
   description = "aws_batch_compute_environment.compute_resources.allocation_strategy"
   type = string
-  default = "SPOT_CAPACITY_OPTIMIZED"
+  default = "SPOT_PRICE_CAPACITY_OPTIMIZED"
 }
 
 variable "sg_ids" {
