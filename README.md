@@ -109,3 +109,14 @@ Run the following commands to initialize and apply the Terraform configuration:
 terraform init
 terraform apply
 ```
+
+
+### Run a nextflow pipeline
+
+On the aws EC2 session
+
+```
+
+nextflow -c ~/nextflow.config nexomis/primary --input_dir s3://bucket_name/RunID --output_dir s3://bucket_name/RunID_DIR
+
+```
