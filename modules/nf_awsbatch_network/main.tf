@@ -66,6 +66,20 @@ resource "aws_eip" "nat" {
   domain   = "vpc"
 }
 
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id            = aws_vpc.main.id
+  service_name      = "com.amazonaws.${var.aws_region}.s3"
+  vpc_endpoint_type = "Gateway"
+
+  route_table_ids = flatten([
+    [aws_route_table.public.id],
+    aws_route_table.private.*.id
+  ])
+  tags = {
+    Name = "${var.prefix}-s3-vpc-endpoint"
+  }
+}
+
 resource "aws_nat_gateway" "nat" {
   count         = var.network_type == "private" ? (var.only_one_nat ? 1 : length(data.aws_availability_zones.available.names)) : 0
   allocation_id = aws_eip.nat[count.index].id
