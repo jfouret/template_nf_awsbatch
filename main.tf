@@ -28,15 +28,16 @@ provider "tls" {
 module "awsbatch_network" {
   source = "./modules/nf_awsbatch_network"
   aws_region = "eu-west-3"
-  prefix     = "nf_awsbatch"
+  prefix     = var.prefix
   network_type = "private"
 }
 
 module "awsbatch_batch" {
   source = "./modules/nf_awsbatch_batch"
   aws_region = "eu-west-3"
-  prefix     = "nf_awsbatch"
+  prefix     = var.prefix
   sg_ids = [module.awsbatch_network.sg_id]
+  compute_resources_max_vcpus = 192
   subnet_ids = module.awsbatch_network.subnet_ids_for_batch
 }
 
@@ -73,11 +74,11 @@ resource "local_sensitive_file" "private_key_batch" {
 module "awsbatch_session" {
   source = "./modules/nf_awsbatch_session"
   aws_region = "eu-west-3"
-  prefix     = "nf_awsbatch"
+  prefix     = var.prefix
   subnet_id = module.awsbatch_network.public_subnet_ids[0]
   public_key = tls_private_key.example.public_key_openssh
   job_queue = module.awsbatch_batch.job_queue_name
-  env_bucket_name = "nf-awsbatch-env"
+  env_bucket_name = var.new_tmp_bucket_for_env
 }
 
 output "public_ip" {
