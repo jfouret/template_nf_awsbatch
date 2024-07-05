@@ -31,8 +31,8 @@ Below is a summary diagram:
 ### 1. **Clone the repository**
 
    ```sh
-   git clone https://github.com/nexomis/tf-single-ec2.git
-   cd tf-single-ec2
+   git clone https://github.com/nexomis/terraform_nf_awsbatch.git
+   cd terraform_nf_awsbatch
    ```
 
 ### 2. **Create a `backend.tf` file** (optional, if you want to use remote state storage with S3)
