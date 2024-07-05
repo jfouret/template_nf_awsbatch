@@ -47,6 +47,11 @@ variable "aws_region" {
   default = "eu-west-3"
 }
 
+variable "aws_profile" {
+  description = "AWS profile"
+  type        = string
+}
+
 variable "env_bucket_name" {
   description = "The name of the S3 bucket used for storing environment and application-specific data. This should be unique and follow AWS bucket naming conventions."
   type        = string

@@ -1,30 +1,100 @@
 # Terraform Template for Nextflow AWS Batch
 
-## License
-
-```
-   Copyright 2024 Julien FOURET
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-```
-
 ## Introduction 
 
 Nextflow is a robust workflow system for defining and running complex processing pipelines with multiple steps. It excels in scalability and reproducibility and is compatible with various computing environments. This project provides a Terraform template to efficiently set up an AWS Batch environment optimized for Nextflow.
 
 Our goal is to define modular Terraform configurations for effortless deployment of an AWS Batch environment tailored for Nextflow use. This repository contains various modules for flexibility, along with a comprehensive template illustrating their combined application.
 
-## Inspiration sources
+Below is a summary diagram:
+
+![Alt text](./img/diagram.svg)
+
+## Prerequisites
+
+- [Terraform](https://www.terraform.io/downloads.html) installed
+- AWS CLI installed and configured with the appropriate profile
+
+**Required AWS Managed policies**:
+
+- AmazonEC2FullAccess
+- AmazonECS_FullAccess
+- AmazonS3FullAccess
+- AWSBatchFullAccess
+- AWSImageBuilderFullAccess
+- IAMFullAccess
+
+> **Note:** These permissions are broad and should be refined for production environments. The setup includes a Nextflow-specific user with more restricted permissions.
+
+## Configuration
+
+### 1. **Clone the repository**
+
+   ```sh
+   git clone https://github.com/nexomis/tf-single-ec2.git
+   cd tf-single-ec2
+   ```
+
+### 2. **Create a `backend.tf` file** (optional, if you want to use remote state storage with S3)
+
+Manually create a S3 bucket `XXXXXXXXXXXXXXXXXXXX` in the appropriate region. 
+
+> **Note:** Bucket name and region are configurable in `main.tf`.
+
+   ```hcl
+   terraform {
+     backend "s3" {
+       region = "eu-west-3"
+       bucket = "XXXXXXXXXXXXXXXXXXXX"
+       key    = "YYYYYYY.tfstate"
+     }
+   }
+   ```
+
+### 3. **Create a `main.auto.tfvars` file** to specify variables with no default values. Here is an example:
+
+  ```hcl
+  prefix = "nf_awsbatch_jfouret"
+  new_tmp_bucket_for_env = "nf-awsbatch-jfouret.tmp"
+  ```
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_aws_profile"></a> [aws\_profile](#input\_aws\_profile) | AWS profile | `string` | n/a | yes |
+| <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | AWS region | `string` | `"eu-west-3"` | no |
+| <a name="input_max_cpus"></a> [max\_cpus](#input\_max\_cpus) | Max number of CPUs | `number` | `128` | no |
+| <a name="input_new_tmp_bucket_for_env"></a> [new\_tmp\_bucket\_for\_env](#input\_new\_tmp\_bucket\_for\_env) | The name of a bucket that will be created for tmp data | `string` | n/a | yes |
+| <a name="input_prefix"></a> [prefix](#input\_prefix) | The prefix for naming | `string` | n/a | yes |
+
+## Usage
+
+### Quick start
+
+Run the following commands to initialize and apply the Terraform configuration:
+
+```
+terraform init
+terraform apply
+```
+
+### Outputs
+
+| Name | Description |
+|------|-------------|
+| <a name="output_private_key"></a> [private\_key](#output\_private\_key) | Path of the private key to connect the session instance |
+| <a name="output_public_ip"></a> [public\_ip](#output\_public\_ip) | IP of the session instance to connect to start a pipeline |
+| <a name="output_username"></a> [username](#output\_username) | Username to use with SSH |
+
+### Run a nextflow pipeline
+
+First, connect to the EC2 instance with SSH.
+
+```
+NXF_VER=23.10.0 nextflow -c ~/nextflow.config nexomis/primary --input_dir s3://bucket_name/RunID --output_dir s3://bucket_name/RunID_DIR
+
+```
+
+## Inspirations 
 
 I have followed the following ressources to elaborate this template:
 
@@ -35,7 +105,7 @@ I have followed the following ressources to elaborate this template:
 
 Of note, with the introduction of wave and fusion some things have changed, therefore the use of image is less necessary. In addition I tried to use more of role-defined permission rather than using acess key or secret.
 
-## Repository Contents
+## Modules
 
 ### Module: `nf_awsbatch_network`
 
@@ -71,52 +141,6 @@ Serves as an example showcasing the integration of all modules.
 
 Output of the instance IP and provision of `generated_key.pem` for secure to the batch session.
 
-## Usage
+## known limitation
 
-### Prerequisite:
-
-1. Install terraform
-
-2. Setup AWS credentials
-
-```
-export AWS_DEFAULT_REGION="eu-west-3"
-export AWS_ACCESS_KEY_ID=XXXXXXXXXXXXXXXXXXXX
-export AWS_SECRET_ACCESS_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-```
-Alternatively, you can store those in `.aws/credentials.sh` and run `source .aws/credentials.sh`
-
-**Required AWS Managed policies**:
-
-- AmazonEC2FullAccess
-- AmazonECS_FullAccess
-- AmazonS3FullAccess
-- AWSBatchFullAccess
-- AWSImageBuilderFullAccess
-- IAMFullAccess
-
-> **Note:** These permissions are broad and should be refined for production environments. The setup includes a Nextflow-specific user with more restricted permissions.
-
-3. Manually create a S3 bucket `tfstate.test-awsbatch` in the appropriate region. 
-
-> **Note:** Bucket name and region are configurable in `main.tf`.
-
-### Quick start
-
-Run the following commands to initialize and apply the Terraform configuration:
-
-```
-terraform init
-terraform apply
-```
-
-
-### Run a nextflow pipeline
-
-On the aws EC2 session
-
-```
-
-nextflow -c ~/nextflow.config nexomis/primary --input_dir s3://bucket_name/RunID --output_dir s3://bucket_name/RunID_DIR
-
-```
+Cross-region S3 Gateway have not been setup https://repost.aws/knowledge-center/vpc-endpoints-cross-region-aws-services

@@ -14,39 +14,31 @@
    limitations under the License.
 */
 
-terraform {
-  backend "s3" {
-    region = "eu-west-3"
-    bucket = "tfstate.test-awsbatch"
-    key    = "terraform.tfstate"
-  }
+provider "tls" {
 }
 
-provider "tls" {
+provider "aws" {
+  region = var.aws_region
+  profile = var.aws_profile
 }
 
 module "awsbatch_network" {
   source = "./modules/nf_awsbatch_network"
-  aws_region = "eu-west-3"
+  aws_region = var.aws_region
+  aws_s3_gw_regions = [ var.aws_region ]
+  aws_profile = var.aws_profile
   prefix     = var.prefix
   network_type = "private"
 }
 
 module "awsbatch_batch" {
   source = "./modules/nf_awsbatch_batch"
-  aws_region = "eu-west-3"
+  aws_region = var.aws_region
+  aws_profile = var.aws_profile
   prefix     = var.prefix
   sg_ids = [module.awsbatch_network.sg_id]
-  compute_resources_max_vcpus = 192
+  compute_resources_max_vcpus = var.max_cpus
   subnet_ids = module.awsbatch_network.subnet_ids_for_batch
-}
-
-output "subnets" {
-  value = module.awsbatch_network.subnet_ids_for_batch
-}
-
-output "sg" {
-  value = module.awsbatch_network.sg_id
 }
 
 resource "tls_private_key" "rsa-4096-example" {
@@ -73,7 +65,8 @@ resource "local_sensitive_file" "private_key_batch" {
 
 module "awsbatch_session" {
   source = "./modules/nf_awsbatch_session"
-  aws_region = "eu-west-3"
+  aws_region = var.aws_region
+  aws_profile = var.aws_profile
   prefix     = var.prefix
   subnet_id = module.awsbatch_network.public_subnet_ids[0]
   public_key = tls_private_key.example.public_key_openssh
@@ -82,5 +75,16 @@ module "awsbatch_session" {
 }
 
 output "public_ip" {
+  description = "IP of the session instance to connect to start a pipeline"
   value = module.awsbatch_session.ip
+}
+
+output "username" {
+  description = "Username to use with SSH"
+  value = "ec2-user"
+}
+
+output "private_key" {
+  description = "Path of the private key to connect the session instance"
+  value = local_sensitive_file.private_key_batch.filename
 }

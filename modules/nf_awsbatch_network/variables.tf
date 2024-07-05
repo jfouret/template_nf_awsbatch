@@ -54,3 +54,14 @@ variable "only_one_nat" {
   type        = bool
   default     = true
 }
+
+variable "aws_s3_gw_regions" {
+  description = "List of AWS regions to build S3 gateways"
+  type        = list(string)
+  default     = ["us-east-1", "us-east-2", "us-west-1", "us-west-2", "eu-central-1", "eu-central-2", "eu-west-1", "eu-west-2", "eu-west-1"]
+}
+
+variable "aws_profile" {
+  description = "AWS profile"
+  type        = string
+}

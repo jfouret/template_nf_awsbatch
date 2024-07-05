@@ -1,0 +1,7 @@
+terraform {
+  backend "s3" {
+    region = "eu-west-3"
+    bucket = "XXXXXXXXXXXXXXXXXXXXXXXXXXX"
+    key    = "xxxxxxxxxxxxxxxxxxx"
+  }
+}

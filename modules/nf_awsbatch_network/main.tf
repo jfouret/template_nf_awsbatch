@@ -16,6 +16,7 @@
 
 provider "aws" {
   region = var.aws_region
+  profile = var.aws_profile
 }
 
 resource "aws_vpc" "main" {
@@ -67,14 +68,16 @@ resource "aws_eip" "nat" {
 }
 
 resource "aws_vpc_endpoint" "s3" {
+  for_each = toset(var.aws_s3_gw_regions)
   vpc_id            = aws_vpc.main.id
-  service_name      = "com.amazonaws.${var.aws_region}.s3"
+  service_name      = "com.amazonaws.${each.key}.s3"
   vpc_endpoint_type = "Gateway"
 
   route_table_ids = flatten([
     [aws_route_table.public.id],
     aws_route_table.private.*.id
   ])
+
   tags = {
     Name = "${var.prefix}-s3-vpc-endpoint"
   }
@@ -157,4 +160,5 @@ resource "aws_security_group" "ecs_batch_sg" {
   }
 
 }
+
 

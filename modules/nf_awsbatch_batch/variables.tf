@@ -32,6 +32,11 @@ variable "aws_region" {
   default     = "eu-west-3"
 }
 
+variable "aws_profile" {
+  description = "AWS profile"
+  type        = string
+}
+
 variable "instance_type" {
   description = "The instance types that can be launched."
   type = list(string)

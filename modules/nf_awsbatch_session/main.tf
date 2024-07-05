@@ -14,6 +14,11 @@
    limitations under the License.
 */
 
+provider "aws" {
+  region = var.aws_region
+  profile = var.aws_profile
+}
+
 data "aws_subnet" "subnet" {
   id = var.subnet_id  # Replace var.subnet_id with your subnet ID or variable
 }
