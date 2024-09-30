@@ -34,6 +34,28 @@ resource "aws_key_pair" "key" {
   public_key = tls_private_key.key.public_key_openssh
 }
 
+// take 45 s to run
+// prefix different from good practice on purpose
+
+data "template_file" "cloud_init" {
+  template = file("${path.module}/cloud_init.tpl")
+
+  vars = {
+    use_fusion = var.use_fusion
+  }
+}
+
+data "template_cloudinit_config" "config" {
+  gzip          = false
+  base64_encode = true
+  
+  part {
+    filename     = "init.cfg"
+    content_type = "text/cloud-config"
+    content      = data.template_file.cloud_init.rendered
+  }
+}
+
 resource "aws_launch_template" "launch_template" {
   name = "${var.prefix}-launch-template"
 
@@ -43,8 +65,12 @@ resource "aws_launch_template" "launch_template" {
       delete_on_termination = true
       volume_size           = var.volume_size
       volume_type           = "gp3"
+      throughput            = var.volume_throughput
+      iops                  = var.volume_iops
     }
   }
+  user_data = data.template_cloudinit_config.config.rendered
+
 }
 
 resource "aws_batch_compute_environment" "nf_managed_ec2" {

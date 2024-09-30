@@ -33,7 +33,7 @@ variable "subnet_id" {
 variable "ami_id" {
   description = "AMI ID for the EC2 instance (expected to be Amazon Linux 2023)"
   type        = string
-  default = "ami-09594e7fa2e7787c1"
+  default = "ami-0cb0b94275d5b4aec"
 }
 
 variable "job_queue" {
@@ -63,8 +63,34 @@ variable "instance_type" {
   default = "t3.medium"
 }
 
+variable "tower_access_token" {
+  description = "The token from the seqera plateform to use wave"
+  type        = string
+  default     = ""
+}
 
+variable "use_fusion" {
+  description = "Flag to determine whether to use fusion or not"
+  type        = bool
+  default     = false
+}
 
+variable "volume_iops" {
+  description = "IOPS for block storage"
+  type        = number
+  default     = 3000
+}
 
+variable "volume_throughput" {
+  description = "Throughput (MB/s) for block storage"
+  type        = number
+  default     = 125
+}
+
+variable "volume_size" {
+  description = "Volume size that must be higher than the root volume from base ami"
+  type = number
+  default = 100
+}
 
 

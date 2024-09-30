@@ -1,17 +1,17 @@
 /*
-   Copyright 2024 Julien FOURET
+  Copyright 2024 Julien FOURET
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
 
-       http://www.apache.org/licenses/LICENSE-2.0
+    http://www.apache.org/licenses/LICENSE-2.0
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
 */
 
 provider "aws" {
@@ -107,6 +107,19 @@ resource "aws_s3_object" "nextflow_workdir" {
   content_type = "application/x-directory"
 }
 
+data "template_file" "cloud_init" {
+  
+  template = file("${path.module}/cloud_init.tpl")
+
+  vars = {
+    use_fusion = var.use_fusion
+    aws_region = var.aws_region
+    job_queue = var.job_queue
+    tower_access_token = var.tower_access_token
+    s3_bucket = aws_s3_bucket.nextflow_bucket.bucket
+  }
+}
+
 resource "aws_instance" "batch_session" {
   depends_on = [aws_s3_object.nextflow_workdir]
   ami           = var.ami_id
@@ -115,31 +128,16 @@ resource "aws_instance" "batch_session" {
   subnet_id     = var.subnet_id
   key_name      = aws_key_pair.deployer.key_name
 
+  root_block_device {
+    delete_on_termination = true
+    volume_size           = var.volume_size
+    volume_type           = "gp3"
+    throughput            = var.volume_throughput
+    iops                  = var.volume_iops
+  }
+
   vpc_security_group_ids = [aws_security_group.ssh_access.id]
 
-  user_data = <<-EOF
-    #cloud-config
-    write_files:
-    - path: /home/ec2-user/nextflow.config
-      content: |
-        process.executor = 'awsbatch'
-        process.queue = '${var.job_queue}'
-        aws.region = '${var.aws_region}'
-        wave { 
-          enabled = true
-        } 
-        fusion {
-          enabled = true
-        }
-        workDir = 's3://${aws_s3_bucket.nextflow_bucket.bucket}/nextflow_env/'
-    runcmd:
-    - yum install -y awscli bzip2 wget java-21-amazon-corretto-headless vim
-    - wget https://s3.amazonaws.com/mountpoint-s3-release/latest/x86_64/mount-s3.rpm
-    - yum install -y ./mount-s3.rpm
-    - rm ./mount-s3.rpm
-    - wget -qO- https://get.nextflow.io | bash
-    - mv nextflow /usr/local/bin/
-    - chmod o+rx /usr/local/bin/nextflow
-  EOF
+  user_data = data.template_file.cloud_init.rendered
 }
 

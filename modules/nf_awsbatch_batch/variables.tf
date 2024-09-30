@@ -17,7 +17,7 @@
 variable "volume_size" {
   description = "Volume size that must be higher than the root volume from base ami"
   type = number
-  default = 100
+  default = 1000
 }
 
 variable "prefix" {
@@ -85,4 +85,22 @@ variable "sg_ids" {
 variable "subnet_ids" {
   description = "subnet ids"
   type = list(string)
+}
+
+variable "use_fusion" {
+  description = "Flag to determine whether to use fusion or not"
+  type        = bool
+  default     = false
+}
+
+variable "volume_iops" {
+  description = "IOPS for block storage"
+  type        = number
+  default     = 6000
+}
+
+variable "volume_throughput" {
+  description = "Throughput (MB/s) for block storage"
+  type        = number
+  default     = 500
 }

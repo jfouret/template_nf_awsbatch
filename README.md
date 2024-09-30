@@ -2,9 +2,7 @@
 
 ## Introduction 
 
-Nextflow is a robust workflow system for defining and running complex processing pipelines with multiple steps. It excels in scalability and reproducibility and is compatible with various computing environments. This project provides a Terraform template to efficiently set up an AWS Batch environment optimized for Nextflow.
-
-Our goal is to define modular Terraform configurations for effortless deployment of an AWS Batch environment tailored for Nextflow use. This repository contains various modules for flexibility, along with a comprehensive template illustrating their combined application.
+This project aims at facilitating the deployment of AWS Batch infrastructure to use Nextflow.
 
 Below is a summary diagram:
 
@@ -14,6 +12,13 @@ Below is a summary diagram:
 
 - [Terraform](https://www.terraform.io/downloads.html) installed
 - AWS CLI installed and configured with the appropriate profile
+
+> Note that you'll need the AWS CLI version 2
+
+```
+aws configure sso
+```
+> **Importantly** the profile needs the following access
 
 **Required AWS Managed policies**:
 
@@ -35,11 +40,11 @@ Below is a summary diagram:
    cd terraform_nf_awsbatch
    ```
 
-### 2. **Create a `backend.tf` file** (optional, if you want to use remote state storage with S3)
+### 2. (*Optional*) **Create a `backend.tf` file** (optional, if you want to use remote state storage with S3)
 
 Manually create a S3 bucket `XXXXXXXXXXXXXXXXXXXX` in the appropriate region. 
 
-> **Note:** Bucket name and region are configurable in `main.tf`.
+> **Note:** Bucket name and region are configurable in `backend.tf`.
 
    ```hcl
    terraform {
@@ -58,14 +63,6 @@ Manually create a S3 bucket `XXXXXXXXXXXXXXXXXXXX` in the appropriate region.
   new_tmp_bucket_for_env = "nf-awsbatch-jfouret.tmp"
   ```
 
-| Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| <a name="input_aws_profile"></a> [aws\_profile](#input\_aws\_profile) | AWS profile | `string` | n/a | yes |
-| <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | AWS region | `string` | `"eu-west-3"` | no |
-| <a name="input_max_cpus"></a> [max\_cpus](#input\_max\_cpus) | Max number of CPUs | `number` | `128` | no |
-| <a name="input_new_tmp_bucket_for_env"></a> [new\_tmp\_bucket\_for\_env](#input\_new\_tmp\_bucket\_for\_env) | The name of a bucket that will be created for tmp data | `string` | n/a | yes |
-| <a name="input_prefix"></a> [prefix](#input\_prefix) | The prefix for naming | `string` | n/a | yes |
-
 ## Usage
 
 ### Quick start
@@ -76,6 +73,28 @@ Run the following commands to initialize and apply the Terraform configuration:
 terraform init
 terraform apply
 ```
+
+### Inputs
+
+## Inputs
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_aws_profile"></a> [aws\_profile](#input\_aws\_profile) | AWS profile | `string` | n/a | yes |
+| <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | AWS region | `string` | `"eu-west-3"` | no |
+| <a name="input_batch_instance_type"></a> [batch\_instance\_type](#input\_batch\_instance\_type) | list of instance types for AWS Batch | `list(string)` | <pre>[<br>  "r5a.4xlarge",<br>  "r5a.8xlarge",<br>  "r5.4xlarge",<br>  "r5.8xlarge",<br>  "m5a.4xlarge",<br>  "m5a.8xlarge",<br>  "m5.4xlarge",<br>  "m5.8xlarge",<br>  "c5a.4xlarge",<br>  "c5a.8xlarge",<br>  "c5.4xlarge",<br>  "c5.8xlarge"<br>]</pre> | no |
+| <a name="input_batch_volume_iops"></a> [batch\_volume\_iops](#input\_batch\_volume\_iops) | IOPS for block storage for Batch instances | `number` | `6000` | no |
+| <a name="input_batch_volume_size"></a> [batch\_volume\_size](#input\_batch\_volume\_size) | Volume size  for Batch instances that must be higher than the root volume from base ami | `number` | `1000` | no |
+| <a name="input_batch_volume_throughput"></a> [batch\_volume\_throughput](#input\_batch\_volume\_throughput) | Throughput (MB/s) for block storage for Batch instances | `number` | `500` | no |
+| <a name="input_max_cpus"></a> [max\_cpus](#input\_max\_cpus) | Max number of CPUs | `number` | `128` | no |
+| <a name="input_new_tmp_bucket_for_env"></a> [new\_tmp\_bucket\_for\_env](#input\_new\_tmp\_bucket\_for\_env) | The name of a bucket that will be created for tmp data | `string` | n/a | yes |
+| <a name="input_prefix"></a> [prefix](#input\_prefix) | The prefix for naming | `string` | n/a | yes |
+| <a name="input_session_instance_type"></a> [session\_instance\_type](#input\_session\_instance\_type) | Instance type to use for the session (c5n good for network) | `string` | `"c5n.xlarge"` | no |
+| <a name="input_session_volume_iops"></a> [session\_volume\_iops](#input\_session\_volume\_iops) | IOPS for block storage for Session instance | `number` | `3000` | no |
+| <a name="input_session_volume_size"></a> [session\_volume\_size](#input\_session\_volume\_size) | Volume size  for Session instance that must be higher than the root volume from base ami | `number` | `100` | no |
+| <a name="input_session_volume_throughput"></a> [session\_volume\_throughput](#input\_session\_volume\_throughput) | Throughput (MB/s) for block storage for Session instance | `number` | `125` | no |
+| <a name="input_tower_access_token"></a> [tower\_access\_token](#input\_tower\_access\_token) | The token from the seqera plateform to use wave | `string` | n/a | yes |
+| <a name="input_use_fusion"></a> [use\_fusion](#input\_use\_fusion) | Flag to determine whether to use fusion or not | `bool` | `false` | no |
 
 ### Outputs
 
@@ -90,7 +109,7 @@ terraform apply
 First, connect to the EC2 instance with SSH.
 
 ```
-NXF_VER=23.10.0 nextflow -c ~/nextflow.config nexomis/primary --input_dir s3://bucket_name/RunID --output_dir s3://bucket_name/RunID_DIR
+NXF_VER=23.10.0 nextflow -c ~/nextflow.config nexomis/primary
 
 ```
 

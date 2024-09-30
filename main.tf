@@ -36,9 +36,14 @@ module "awsbatch_batch" {
   aws_region = var.aws_region
   aws_profile = var.aws_profile
   prefix     = var.prefix
+  use_fusion = var.use_fusion
   sg_ids = [module.awsbatch_network.sg_id]
+  instance_type = var.batch_instance_type
   compute_resources_max_vcpus = var.max_cpus
   subnet_ids = module.awsbatch_network.subnet_ids_for_batch
+  volume_iops = var.batch_volume_iops
+  volume_size = var.batch_volume_size
+  volume_throughput = var.batch_volume_throughput
 }
 
 resource "tls_private_key" "rsa-4096-example" {
@@ -66,12 +71,18 @@ resource "local_sensitive_file" "private_key_batch" {
 module "awsbatch_session" {
   source = "./modules/nf_awsbatch_session"
   aws_region = var.aws_region
+  instance_type = var.session_instance_type
   aws_profile = var.aws_profile
   prefix     = var.prefix
+  use_fusion = var.use_fusion
   subnet_id = module.awsbatch_network.public_subnet_ids[0]
   public_key = tls_private_key.example.public_key_openssh
   job_queue = module.awsbatch_batch.job_queue_name
   env_bucket_name = var.new_tmp_bucket_for_env
+  tower_access_token = var.tower_access_token
+  volume_iops = var.session_volume_iops
+  volume_size = var.session_volume_size
+  volume_throughput = var.session_volume_throughput
 }
 
 output "public_ip" {
@@ -86,5 +97,5 @@ output "username" {
 
 output "private_key" {
   description = "Path of the private key to connect the session instance"
-  value = local_sensitive_file.private_key_batch.filename
+  value = local_sensitive_file.private_key.filename
 }
