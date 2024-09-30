@@ -118,6 +118,7 @@ data "template_file" "cloud_init" {
     tower_access_token = var.tower_access_token
     s3_bucket = aws_s3_bucket.nextflow_bucket.bucket
   }
+
 }
 
 resource "aws_instance" "batch_session" {
@@ -139,5 +140,6 @@ resource "aws_instance" "batch_session" {
   vpc_security_group_ids = [aws_security_group.ssh_access.id]
 
   user_data = data.template_file.cloud_init.rendered
+  user_data_replace_on_change = true
 }
 
