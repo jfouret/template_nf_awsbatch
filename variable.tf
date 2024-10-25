@@ -28,6 +28,7 @@ variable "new_tmp_bucket_for_env" {
 variable "tower_access_token" {
   description = "The token from the seqera plateform to use wave"
   type        = string
+  default     = ""
 }
 
 variable "use_fusion" {
@@ -43,9 +44,7 @@ variable "batch_instance_type" {
     "r5a.4xlarge", "r5a.8xlarge",
     "r5.4xlarge", "r5.8xlarge" ,
     "m5a.4xlarge", "m5a.8xlarge",
-    "m5.4xlarge", "m5.8xlarge" ,
-    "c5a.4xlarge", "c5a.8xlarge",
-    "c5.4xlarge", "c5.8xlarge" 
+    "m5.4xlarge", "m5.8xlarge"
   ]
 }
 
