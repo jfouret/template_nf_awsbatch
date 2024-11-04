@@ -28,7 +28,7 @@ data "aws_iam_policy_document" "ec2_assume_role" {
 }
 
 resource "aws_iam_role" "ecs_instance_role" {
-  name               = "ecs_instance_role"
+  name               = "${var.prefix}-ecs_instance_role_for_batch"
   assume_role_policy = data.aws_iam_policy_document.ec2_assume_role.json
 }
 
@@ -43,7 +43,7 @@ resource "aws_iam_role_policy_attachment" "ecs_instance_role_2" {
 }
 
 resource "aws_iam_instance_profile" "ecs_instance_role" {
-  name = "ecs_instance_role"
+  name = "${var.prefix}-ecs_instance_role_for_batch"
   role = aws_iam_role.ecs_instance_role.name
 }
 
